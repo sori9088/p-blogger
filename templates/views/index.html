@@ -1,0 +1,44 @@
+{% extends './base.html' %}
+
+
+{% block content %}
+<div class='container'>
+
+  {% include './views/newpost.html' %}
+
+  {% for post in posts %}
+  <div class="writeform">
+  <div class="media my-4 py-2">
+    <div class="media-body">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+        <h5 class="mt-0">{{post.title}}</h5>
+        <small class="text-muted mx-5">{{post.email}}</small>
+       </div>
+      </div>
+
+      {{post.body}}
+    </div>
+    <p>
+      <button class="btn btn-warning btn-sm"  data-toggle="collapse" href='#collapseExample' role="button" aria-expanded="false" aria-controls="collapseExample">
+        <i class="fas fa-lg fa-comment-dots"></i>
+      </button>
+    </p>
+    <form action={{url_for('delete_post', id=post.id)}} method="POST">
+      <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-lg fa-trash-alt"></i></button>
+    </form>
+    <form action={{url_for('update_post', id=post.id)}}>
+      <button type="submit" class="btn btn-info btn-sm"><i class="fas fa-lg fa-edit"></i></button>
+    </form>
+  </div>
+  <div class="collapse" id="collapseExample">
+      <div class="card card-body">
+        {% include './views/newcomment.html' %}
+      </div>
+</div>
+</div>
+
+  {% endfor %}
+</div>
+
+{% endblock %}
