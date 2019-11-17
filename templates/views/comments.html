@@ -1,0 +1,29 @@
+
+{% for comment in comments %}
+    <div class="media my-3 py-2">
+        <div class="media-body">
+            <div class="d-flex align-items-center justify-content-between">
+                    <h5 class="mt-0">{{comment.email}}</h5>
+                    {% if current_user.email == comment.email : %}
+                <div class="d-flex">
+                <form action={{url_for('delete_comment', id=comment.id)}} method="POST">
+                    <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-lg fa-trash-alt"></i></button>
+                </form>
+                <form action={{url_for('update_comment', id=comment.id)}}>
+                    <button type="submit" class="btn btn-info btn-sm"><i class="fas fa-lg fa-edit"></i></button>
+                </form>
+                </div>
+
+                
+                {% else %}
+
+                {% endif %}
+            </div>
+            {{comment.body}}
+            <div class="my-2">
+                <small class="text-muted"><i class="fas fa-clock mr-2"></i>{{comment.created}}</small>
+            </div>
+        </div>
+    </div>
+    <hr></hr>
+{% endfor %}

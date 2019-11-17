@@ -1,19 +1,29 @@
 <div class="writeform">
     <form method="POST">
+        {% if current_user.is_authenticated %}
         <div class="form-group">
-            <label for="exampleInputEmail1">Email address</label>
-            <input name="email" type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"
-                placeholder="Enter email">
-            <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
-        </div>
+                <label for="formGroupExampleInput">Title</label>
+                <input name="title" type="text" class="form-control" id="formGroupExampleInput" placeholder="Title">
+            </div>
+        {% else %}
         <div class="form-group">
             <label for="formGroupExampleInput">Title</label>
-            <input name="title" type="text" class="form-control" id="formGroupExampleInput" placeholder="Title">
+            <input name="title" type="text" class="form-control" id="formGroupExampleInput" placeholder="Title"
+            value='You must sign in first' disabled>
         </div>
+        {% endif %}
         <div class="form-group">
             <label for="exampleFormControlTextarea1">textarea</label>
             <textarea name="body" type="input" class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
         </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <div class="form-group">
+                <label for="formGroupExampleInput">Image_url</label>
+                <input name="image_url" type="text" class="form-control" id="formGroupExampleInput" placeholder="e.g. www.sample.com/sample_image.jpg">
+        </div>
+        {% if current_user.is_authenticated %}
+        <button type="submit" class="btn peach-gradient">Submit</button>
+        {% else %}
+        <button type="submit" class="btn peach-gradient" disabled>Submit</button>
+        {% endif %}
     </form>
 </div>

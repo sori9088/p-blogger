@@ -20,20 +20,35 @@ To create a GIF, use [LiceCap](http://www.cockos.com/licecap/), [RecordIt](http:
 
 The following **required** functionalities are completed (this is a sample):
 
-* [x] User can see list of blog posts
-* [x] User can see a form to create a blog post.
-* [x] User can create a post.
-* [x] User can see a button to delete a blog post if the blog post is theirs.
-* [x] User can see a form to create a comment on a blog post.
-* [ ] User can create a comment on a blog post.
-* [x] User can see a button to delete a comment if the blog post is theirs.
-* [ ] User can create an account if they're not signed in.
-* [ ] User can sign in if they already have an account.
-* [ ] User can see a notification after signing in.
+* [x] User can register an account with his username, email, password.
+* [ ] User should see appropriate flash messages depending on the situation (email taken? username taken? email too short?).
+* [x] User can login with their credentials.
+* [x] User should see appropriate flash messages depending on the situation upon loggin in(wrong email, wrong password?).
+* [x] User can access a route which renders a form which allows them to create a new blog.
+* [x] User should be able to see all the blogs with title, body, author name, datetime created/ updated with maximum 100 characters, and the newest blogs will be on top.
+
+* [x] User can then see full details of each blog (include comments feature which mentioned below) when he click on the blog title (direct them to another route).
+
+* [x] User can edit/delete their own blogs but not others.
+
+* [x] User can access a route which renders all the blogs which belong to the current_user.
+
+* [x] User cannot create the blogs or access to "create blog" screen unless they're signed in.
+
+* [x] User can only sign out once signed in, links and urls should be disabled too.
+
+* [x] User can see comments which belong to each blog.
+
+* [x] User should be able to comment on each blog too, also edit and delete their own comments but not others.
+
+* [x] User should be able to sort the list of blogs (newest first/last).
 
 The following **optional** features are implemented:
 
-* [x] User can modify the post.
+* [x] User can see a count of how many comments each blog has (on both all blogs and single blog page).
+* [ ] Implement: Vote or Like system, each user can only like or vote up/down once. If he attempts to do it again, return his action to 0 then allow him to vote/like again.
+* [ ] Following feature, a user can follow other users, and will see all the blogs from them.
+* [ ] A page that show some statistics, e.g top bloggers, top vote/like blogs, top blogs which have most comments.
 
 
 The following **additional** features are implemented:
@@ -48,7 +63,7 @@ Describe any challenges encountered while building the app.
 
 ## License
 
-    Copyright [yyyy] [name of copyright owner]
+    Copyright [2019] [Hansol]
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

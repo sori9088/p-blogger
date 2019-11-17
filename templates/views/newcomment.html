@@ -1,6 +1,25 @@
-<form action={{url_for('new_comment', id=post.id)}} method="POST">
-    <textarea>
-        lalalala
-    </textarea>
-    <button>Submit</button>
+{% include './views/comments.html' %}
+
+<form action={{url_for('new_comment', id=id)}} method="POST">
+    <div class="form-group">
+        {% if current_user.is_authenticated %}
+        <textarea name="body" type="input" class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+        <div class="form-group">
+            <label for="formGroupExampleInput">Image_url</label>
+            <input name="image_url" type="text" class="form-control" id="formGroupExampleInput" placeholder="e.g. www.sample.com/sample_image.jpg">
+        </div>
+        <button type="submit" class="btn peach-gradient">Submit</button>
 </form>
+</div>
+{% else %}
+<textarea name="body" type="input" class="form-control" disabled id="exampleFormControlTextarea1"
+    rows="3">You must sign in first</textarea>
+    <div class="form-group">
+        <label for="formGroupExampleInput">Image_url</label>
+        <input name="image_url" type="text" class="form-control" id="formGroupExampleInput" placeholder="e.g. www.sample.com/sample_image.jpg">
+    </div>
+<button type="submit" class="btn peach-gradient" disabled>Submit</button>
+</form>
+</div>
+
+{% endif %}
