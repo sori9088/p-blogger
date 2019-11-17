@@ -21,7 +21,7 @@ To create a GIF, use [LiceCap](http://www.cockos.com/licecap/), [RecordIt](http:
 The following **required** functionalities are completed (this is a sample):
 
 * [x] User can register an account with his username, email, password.
-* [ ] User should see appropriate flash messages depending on the situation (email taken? username taken? email too short?).
+* [X] User should see appropriate flash messages depending on the situation (email taken? username taken? email too short?).
 * [x] User can login with their credentials.
 * [x] User should see appropriate flash messages depending on the situation upon loggin in(wrong email, wrong password?).
 * [x] User can access a route which renders a form which allows them to create a new blog.

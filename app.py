@@ -228,17 +228,20 @@ def signout():
 
 @app.route("/like/<id>" ,methods=["GET", "POST"])
 def toggle_like(id):
-    likes = Likes.query.filter_by(postid=id).filter_by(user_id=current_user.id).first()
-    if not likes :
-        new_like = Likes(user_id= current_user.id,
-                    postid= id)
-        db.session.add(new_like)
-        db.session.commit() 
-        return redirect(url_for('view_post'))
+    if current_user.is_authenticated :
+        likes = Likes.query.filter_by(postid=id).filter_by(user_id=current_user.id).first()
+        if not likes :
+            new_like = Likes(user_id= current_user.id,
+                        postid= id)
+            db.session.add(new_like)
+            db.session.commit() 
+            return redirect(url_for('view_post'))
+        else :
+            db.session.delete(likes)
+            db.session.commit()
+            return redirect(url_for('view_post'))
     else :
-        db.session.delete(likes)
-        db.session.commit()
-        return redirect(url_for('view_post'))
+        flash('You have to sign in first','danger')
     return redirect(url_for('view_post'))
 
 

@@ -7,7 +7,6 @@
   <a href={{ url_for('new_post') }}><button type="button" class="btn peach-gradient">New post</button></a>
   {% include './views/posts.html' %}
   {% else %}
-  <h1 class="display-4 text-center">Sign in First</h1>
   {% include './views/posts.html' %}
 
   {% endif %}
