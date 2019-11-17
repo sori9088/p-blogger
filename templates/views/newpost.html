@@ -1,3 +1,7 @@
+{% extends './base.html' %}
+
+
+{% block content %}
 <div class="writeform">
     <form method="POST">
         {% if current_user.is_authenticated %}
@@ -27,3 +31,5 @@
         {% endif %}
     </form>
 </div>
+
+{% endblock %}

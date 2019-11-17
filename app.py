@@ -63,7 +63,7 @@ class User(UserMixin, db.Model) :
 
 class Likes(db.Model) :
     id=db.Column(db.Integer, primary_key = True)
-    email = db.Column(db.String(80), nullable=False)
+    user_id = db.Column(db.Integer, nullable=False)
     postid=db.Column(db.Integer, nullable=False)
     commentid=db.Column(db.Integer, nullable=True)
     
@@ -75,7 +75,22 @@ def load_user(user_id):
     return User.query.get(user_id)
 
 
+
 @app.route("/", methods=["GET", "POST"])
+def view_post():
+    posts = Blog.query.all()
+    comments = Comment.query.all()
+    likes = Likes.query.all()
+    for post in posts:
+        post.comments = Comment.query.filter_by(parent_id = post.id).all()
+        post.likes = Likes.query.filter_by(postid = post.id).all()
+    if request.args.get('filter') == 'most-recent':
+        posts = Blog.query.order_by(Blog.created.desc()).all()
+        return render_template('views/home.html', posts=posts, comments=comments ,likes=likes)
+    return render_template("views/home.html", posts=posts, comments=comments, likes=likes)
+
+
+@app.route("/new_post", methods=["GET", "POST"])
 def new_post():
     if request.method== "POST" :
         new_blog = Blog(title= request.form['title'],
@@ -85,16 +100,8 @@ def new_post():
                         image_url = request.form['image_url'] )
         db.session.add(new_blog)
         db.session.commit()
-        return redirect(url_for('new_post'))
-    posts = Blog.query.all()
-    comments = Comment.query.all()
-    for post in posts:
-        post.comments = Comment.query.filter_by(parent_id = post.id).all()
-    if request.args.get('filter') == 'most-recent':
-        posts = Blog.query.order_by(Blog.created.desc()).all()
-        return render_template('views/index.html', posts=posts, comments=comments)
-    return render_template("views/index.html", posts=posts, comments=comments)
-
+        return redirect(url_for('view_post'))
+    return render_template("views/newpost.html")
 
 
 @app.route("/posts/<id>", methods=["GET","POST"])
@@ -104,8 +111,9 @@ def delete_post(id) :
         if not post:
             return "There is no such post."
         db.session.delete(post)
+        Likes.query.filter_by(postid = id).delete()        
         db.session.commit()
-        return redirect(url_for('new_post'))
+        return redirect(url_for('view_post'))
     return "Not Allowed"
 
 
@@ -117,7 +125,7 @@ def update_post(id):
         posts.body = request.form['body']
         posts.image_url = request.form['image_url']
         db.session.commit()
-        return redirect(url_for('new_post'))
+        return redirect(url_for('view_post'))
     return render_template("views/modify.html", posts=posts)
 
 
@@ -131,7 +139,7 @@ def new_comment(id):
         db.session.add(new_comment)
         db.session.commit()
         flash('Thank you for your comment','success')
-        return redirect(url_for('new_post', id=id))
+        return redirect(url_for('view_post', id=id))
     comment = Comment.query.filter_by(parent_id = id).all()
     return render_template("views/newcomment.html",id=id, comments=comment)
 
@@ -143,7 +151,7 @@ def delete_comment(id) :
             return "There is no such comment."
         db.session.delete(comment)
         db.session.commit()
-        return redirect(url_for('new_post'))
+        return redirect(url_for('view_post'))
     return "Not Allowed"
 
 @app.route("/posts/comments/<id>/edit", methods=["GET", "POST"])
@@ -153,7 +161,7 @@ def update_comment(id):
         comments.body = request.form['body']
         comments.image_url = request.form['image_url']
         db.session.commit()
-        return redirect(url_for('new_post'))
+        return redirect(url_for('view_post'))
     return render_template("views/comment_modify.html", comments=comments)
 
 
@@ -161,7 +169,7 @@ def update_comment(id):
 
 def signup():
     if current_user.is_authenticated :
-        return redirect(url_for('new_post'))
+        return redirect(url_for('view_post'))
     
     if request.method== "POST" :
         user = User.query.filter_by(email = request.form['email']).first()
@@ -181,7 +189,7 @@ def signup():
         if user.check_password(request.form['password']):
                 login_user(user)
                 flash('Welcome! {0}'.format(user.email), 'success')
-                return redirect(url_for('new_post'))
+                return redirect(url_for('view_post'))
 
         flash('Incorrect Password !', 'danger')
         return redirect(url_for('signup'))
@@ -192,7 +200,7 @@ def signup():
 
 def signin():
     if current_user.is_authenticated :
-        return redirect(url_for('new_post'))
+        return redirect(url_for('view_post'))
     
     if request.method== "POST" :
         user = User.query.filter_by(email = request.form['email']).first()
@@ -204,7 +212,7 @@ def signin():
         if user.check_password(request.form['password']):
                 login_user(user)
                 flash('Welcome! {0}'.format(user.email), 'success')
-                return redirect(url_for('new_post'))
+                return redirect(url_for('view_post'))
 
         flash('Incorrect Password or Email!', 'danger')
         return redirect(url_for('signin'))
@@ -220,14 +228,18 @@ def signout():
 
 @app.route("/like/<id>" ,methods=["GET", "POST"])
 def toggle_like(id):
-        new_like = Likes(email= current_user.email,
-                        postid= id)
+    likes = Likes.query.filter_by(postid=id).filter_by(user_id=current_user.id).first()
+    if not likes :
+        new_like = Likes(user_id= current_user.id,
+                    postid= id)
         db.session.add(new_like)
+        db.session.commit() 
+        return redirect(url_for('view_post'))
+    else :
+        db.session.delete(likes)
         db.session.commit()
-        return redirect(url_for('new_post'))
-
-        # likes = Likes.query(func.count(Likes.postid)).filter_by(postid == id)
-        return redirect(url_for('new_post'))
+        return redirect(url_for('view_post'))
+    return redirect(url_for('view_post'))
 
 
 if __name__ == "__main__":

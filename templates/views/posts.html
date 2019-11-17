@@ -1,3 +1,9 @@
+{% if not posts %}
+<div class="writeform text-center">
+<i class="fas fa-cloud-moon"></i>
+<h4>Nothing to see here...</h4>
+</div>
+{% else %}
 {% for post in posts %}
 <div class="writeform">
   <div class="media my-4 py-2">
@@ -20,7 +26,7 @@
         <small class="text-muted"><i class="fas fa-clock mr-2"></i>{{post.created}}</small>
       </div>
       <div class="d-flex">
-        <div class='likes mr-5'><a href={{url_for('toggle_like', id=post.id )}}><i class="fas fa-heart"></i></a></div>
+        <div class='likes mr-5'><a href={{url_for('toggle_like', id=post.id )}}><i class="fas fa-heart"></i></a><span class="ml-2">{{post.likes|length}}</span></div>
         <div class='totalcomments'><i class="fas fa-comment"></i><span class='ml-2'>{{post.comments|length}}</span></div>
       </div>
     </div>
@@ -50,3 +56,4 @@
   </div>
 </div>
 {% endfor %}
+{% endif%}

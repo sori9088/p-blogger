@@ -1,11 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link href='static/signin.css' rel="stylesheet">
-
+{% extends "base.html" %}
     <style>
         .bd-placeholder-img {
           font-size: 1.125rem;
@@ -25,7 +18,7 @@
     <title>Signin</title>
 </head>
 <body>
-    {% extends "base.html" %}
+
     {% block content %}
     <form class="form-signin" method="POST">
         <img class="mb-4" src="/docs/4.3/assets/brand/bootstrap-solid.svg" alt="" width="72" height="72">
