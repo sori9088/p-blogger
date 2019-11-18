@@ -33,6 +33,7 @@ class Blog(db.Model) :
     user_id = db.Column(db.Integer, nullable=False)
     created = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated = db.Column(db.DateTime(timezone=True), onupdate=func.now())
+    view_count = db.Column(db.Integer, default=0)
 
 class Comment(db.Model) :
     id = db.Column(db.Integer,primary_key = True)
