@@ -1,6 +1,7 @@
 import os
 from flask import  Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from sqlalchemy.sql import func
 from flask_fontawesome import FontAwesome
 import datetime
@@ -17,6 +18,8 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.db'
 db = SQLAlchemy(app)
 
+# setup flask migrate
+migrate = Migrate(app,db)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -33,7 +36,7 @@ class Blog(db.Model) :
     user_id = db.Column(db.Integer, nullable=False)
     created = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated = db.Column(db.DateTime(timezone=True), onupdate=func.now())
-    view_count = db.Column(db.Integer, default=0)
+    views_count = db.Column(db.Integer, default=0)
 
 class Comment(db.Model) :
     id = db.Column(db.Integer,primary_key = True)
@@ -79,9 +82,23 @@ def load_user(user_id):
 @app.route("/post/<id>")
 def singlepost(id) :
     post = Blog.query.filter_by(id = id).first()
+    post.views_count += 1
+    db.session.commit()
     comments = Comment.query.filter_by(parent_id=id).all()
     return render_template("views/singlepost.html", post=post,comments=comments )
 
+@app.route("/post/top", methods = ["GET"])
+def topviews():
+    posts = Blog.query.order_by(Blog.views_count.desc()).limit(5).all()
+    comments = Comment.query.all()
+    likes = Likes.query.all()
+    for post in posts:
+        post.comments = Comment.query.filter_by(parent_id = post.id).all()
+        post.likes = Likes.query.filter_by(postid = post.id).all()
+    if request.args.get('filter') == 'most-recent':
+        posts = Blog.query.order_by(Blog.created.desc()).all()
+        return render_template('views/home.html', posts=posts, comments=comments ,likes=likes)
+    return render_template("views/home.html", posts=posts, comments=comments, likes=likes)
 
 @app.route("/", methods=["GET", "POST"])
 def view_post():
