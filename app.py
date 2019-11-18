@@ -75,6 +75,12 @@ def load_user(user_id):
     return User.query.get(user_id)
 
 
+@app.route("/post/<id>")
+def singlepost(id) :
+    post = Blog.query.filter_by(id = id).first()
+    comments = Comment.query.filter_by(parent_id=id).all()
+    return render_template("views/singlepost.html", post=post,comments=comments )
+
 
 @app.route("/", methods=["GET", "POST"])
 def view_post():
