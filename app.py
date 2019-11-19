@@ -1,6 +1,7 @@
 import os
 from flask import  Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from sqlalchemy.sql import func
 from flask_fontawesome import FontAwesome
 import datetime
@@ -17,6 +18,8 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.db'
 db = SQLAlchemy(app)
 
+# setup flask migrate
+migrate = Migrate(app,db)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -33,6 +36,7 @@ class Blog(db.Model) :
     user_id = db.Column(db.Integer, nullable=False)
     created = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated = db.Column(db.DateTime(timezone=True), onupdate=func.now())
+    views_count = db.Column(db.Integer, default=0)
 
 class Comment(db.Model) :
     id = db.Column(db.Integer,primary_key = True)
@@ -48,7 +52,9 @@ class User(UserMixin, db.Model) :
     email = db.Column(db.String(80),nullable=False, unique=True)
     username = db.Column(db.String(80),nullable=False)
     password = db.Column(db.String(10),nullable=False)
+    admin = db.Column(db.Boolean, default=False, nullable=False)
     created = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    flag_posts = db.relationship('Blog', secondary = 'flags', backref = 'flagged_by', lazy = True)
 
     def set_password(self, password) :
         self.password = generate_password_hash(password)
@@ -60,6 +66,10 @@ class User(UserMixin, db.Model) :
         """Return True if the user is authenticated."""
         return self.authenticated
 
+class Flag(db.Model):
+    __tablename__ = 'flags'
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), primary_key = True)
+    postid=db.Column(db.Integer, db.ForeignKey(Blog.id), primary_key = True)
 
 class Likes(db.Model) :
     id=db.Column(db.Integer, primary_key = True)
@@ -78,13 +88,48 @@ def load_user(user_id):
 @app.route("/post/<id>")
 def singlepost(id) :
     post = Blog.query.filter_by(id = id).first()
+    post.views_count += 1
+    db.session.commit()
     comments = Comment.query.filter_by(parent_id=id).all()
     return render_template("views/singlepost.html", post=post,comments=comments )
 
+# Hai made this (a route to flag posts)
+@app.route("/post/<id>/flag", methods = ['GET', 'POST'])
+def flag_post(id) :
+    post = Blog.query.get(id)
+    if not current_user in post.flagged_by:
+        current_user.flag_posts.append(post)
+        db.session.commit()
+        flash('successfully flagged post {}'.format(id), 'success')
+    elif current_user.admin and current_user in post.flagged_by:
+        thispost_flags = Flag.query.filter_by(postid = id).all()
+        for flag in thispost_flags:
+            db.session.delete(flag)
+            db.session.commit()
+        flash('successfully unflagged post {}'.format(id), 'success')
+        return redirect(url_for('flagged_posts'))
+    return redirect(url_for('view_post'))
 
-@app.route("/", methods=["GET", "POST"])
-def view_post():
-    posts = Blog.query.all()
+# Hai made this (a page to show all the flagged posts, can only be seen as admin)
+@app.route("/flaggedposts", methods=["GET", "POST"])
+def flagged_posts():
+    if current_user.admin:
+        # this queries all posts that are in the Flag table
+        posts = Blog.query.join(Flag, Blog.id == Flag.postid).filter(Blog.id == Flag.postid).all()
+        
+        comments = Comment.query.all()
+        likes = Likes.query.all()
+
+        for post in posts:
+            post.comments = Comment.query.filter_by(parent_id = post.id).all()
+            post.likes = Likes.query.filter_by(postid = post.id).all()
+
+        return render_template("views/home.html", posts=posts, comments=comments, likes=likes)
+    return redirect('view_post')
+
+@app.route("/post/top", methods = ["GET"])
+def topviews():
+    posts = Blog.query.order_by(Blog.views_count.desc()).limit(5).all()
     comments = Comment.query.all()
     likes = Likes.query.all()
     for post in posts:
@@ -95,6 +140,35 @@ def view_post():
         return render_template('views/home.html', posts=posts, comments=comments ,likes=likes)
     return render_template("views/home.html", posts=posts, comments=comments, likes=likes)
 
+# Hai changed this
+@app.route("/", methods=["GET", "POST"])
+def view_post():
+    #query all flags of the current_user (this returns as a list of objects)
+    flags = Flag.query.with_entities(Flag.postid).filter(Flag.user_id == current_user.id).all()
+    current_user.flags = []
+
+    #make a list of flags into the key flags of current_user
+    for flag in flags:
+        current_user.flags.append(flag[0])
+
+    # I put the filter most-recent here so you can have comments and likes in it
+    if request.args.get('filter') == 'most-recent':
+        posts = Blog.query.order_by(Blog.created.desc()).all()
+    else:
+        posts = Blog.query.all()
+
+    comments = Comment.query.all()
+    likes = Likes.query.all()
+    unflagged_posts = []
+
+    for post in posts:
+        # now we filter out only the posts not flagged by the current_user for showing
+        if not post.id in current_user.flags:
+            unflagged_posts.append(post)
+            post.comments = Comment.query.filter_by(parent_id = post.id).all()
+            post.likes = Likes.query.filter_by(postid = post.id).all()
+    
+    return render_template("views/home.html", posts=unflagged_posts, comments=comments, likes=likes)
 
 @app.route("/new_post", methods=["GET", "POST"])
 def new_post():

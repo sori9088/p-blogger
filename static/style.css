@@ -70,3 +70,8 @@ body {
 	0% { background-position: 0% 50%; }
 	60% { background-position: 100% 50%; }
 }
+
+.flagIcon {
+	position:absolute;
+	right: 10px;
+}
